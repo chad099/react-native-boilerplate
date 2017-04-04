@@ -21,6 +21,7 @@ import MePage from '../me/MePage';
 import OfflinePage from '../offline/OfflinePage';
 import SignInPage from '../auth/SignInPage';
 import TodosPage from '../todos/TodosPage';
+import Contact from '../contact/Contact';
 
 type AppProps = {
   appMenuShown: boolean,
@@ -52,11 +53,12 @@ const App = (
         <Page pattern="/offline" component={OfflinePage} />
         <Page pattern="/todos" component={TodosPage} />
         <Page pattern="/signin" component={SignInPage} />
+        <Page pattern="/contact" component={Contact} />
         <Page authorized pattern="/me" component={MePage} />
         <Match
           pattern="/"
           render={({ location: { pathname } }) => {
-            const urls = ['/', '/intl', '/offline', '/signin', '/todos', '/me'];
+            const urls = ['/', '/intl', '/offline', '/signin', '/contact', '/todos', '/me'];
             if (urls.indexOf(pathname) !== -1) return null;
             return <Redirect to="/" />;
           }}

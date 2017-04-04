@@ -50,6 +50,7 @@ const Menu = (
       <MenuLink to="/todos" message={linksMessages.todos} />
       <MenuLink to="/intl" message={linksMessages.intl} />
       <MenuLink to="/offline" message={linksMessages.offline} />
+      <MenuLink to="/contact" message={linksMessages.contacts} />
       {viewer
         ? <MenuLink to="/me" message={linksMessages.me} />
         : <MenuLink to="/signin" message={linksMessages.signIn} />}

@@ -46,6 +46,10 @@ const LinkMessages = defineMessages({
     defaultMessage: 'Todos',
     id: 'app.links.todos',
   },
+  contacts: {
+    defaultMessage: 'Contacts',
+    id: 'app.links.contact',
+  },
 });
 
 export default LinkMessages;
