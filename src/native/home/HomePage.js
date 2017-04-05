@@ -1,11 +1,15 @@
 // @flow
 import React, { Component } from 'react';
+import Axios from 'axios';
+import Polyline from '@mapbox/polyline';
 import {
   AppRegistry,
   StyleSheet,
   Dimensions,
   Text,
-  View
+  View,
+  TextInput,
+  Button
 } from 'react-native';
 
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
@@ -26,7 +30,9 @@ class GoogleMapPlayground extends React.Component {
       marker: {
           latitude: 30.7333,
           longitude: 76.7794
-      }
+      },
+      destination: '',
+      polylineCoords: []
     };
   }
 
@@ -57,15 +63,71 @@ class GoogleMapPlayground extends React.Component {
     });
   }
 
+  _createRouteCoordinates = (response) => {
+    if (response.data.status !== 'OK') {
+      return [];
+    }
+    let points = response.data.routes[0].overview_polyline.points;
+    let steps = Polyline.decode(points);
+    let polylineCoords = [];
+
+    for (let i=0; i < steps.length; i++) {
+      let tempLocation = {
+        latitude : steps[i][0],
+        longitude : steps[i][1]
+      }
+      polylineCoords.push(tempLocation);
+    }
+
+    return polylineCoords;
+  }
+
+  onButtonPress = () => {
+    let destination = encodeURI(this.state.destination);
+    let currentLocation = encodeURI(this.state.region.latitude +','+ this.state.region.longitude);
+    let url = 'maps.googleapis.com/maps/api/directions/json?mode=walking&origin='+currentLocation+'&destination='+destination+'&key=AIzaSyDNc-NcD-74uND4WxOX3ofjp-OO8be44Cg';
+    Axios.get('https://' + url)
+      .then((response) => {
+        let polylineCoords = this._createRouteCoordinates(response);
+        this.setState({ polylineCoords: polylineCoords })
+      })
+      .catch((error) => {
+        alert(error);
+      });
+  };
+
   render() {
     return (
       <View style={{ flex: 1 }}>
+        <View style={styles.search}>
+          <TextInput
+             style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+             onChangeText={(destination) => this.setState({destination: destination})}
+             defaultValue={this.state.destination}
+           />
+        </View>
+
+        <View style={styles.searchButton}>
+        <Button
+           onPress={this.onButtonPress}
+           title="Show direction"
+           accessibilityLabel="See an informative alert"
+         />
+        </View>
+
         <View style={styles.container}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.map}
             region={this.state.region}
             >
+            {
+                this.state.polylineCoords && <MapView.Polyline
+                  coordinates={this.state.polylineCoords}
+                  strokeWidth={2}
+                  strokeColor="red"
+                />
+            }
             <MapView.Marker
               coordinate={this.state.marker}
             />
@@ -84,11 +146,20 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
+    top:100,
     alignItems: 'center'
   },
   map: {
      ...StyleSheet.absoluteFillObject,
   },
+  search: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#009688',
+  },
+  searchButton: {
+    ...StyleSheet.absoluteFillObject,
+    top:50
+  }
 });
 
 export default GoogleMapPlayground;
