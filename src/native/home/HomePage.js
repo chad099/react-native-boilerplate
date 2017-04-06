@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-
+import ActivityIndicatorLoader from '../components/ActivityIndicator';
 const { width, height } = Dimensions.get('window');
+const api_key = 'AIzaSyDNc-NcD-74uND4WxOX3ofjp-OO8be44Cg';
 
 class GoogleMapPlayground extends React.Component {
   constructor(props) {
@@ -32,7 +33,7 @@ class GoogleMapPlayground extends React.Component {
           longitude: 76.7794
       },
       destination: '',
-      polylineCoords: []
+      polylineCoords: [],
     };
   }
 
@@ -56,11 +57,27 @@ class GoogleMapPlayground extends React.Component {
       (error) => alert(JSON.stringify(error)),
       {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
     );
+
     this.watchID = navigator.geolocation.watchPosition((position) => {
       var lastPosition = JSON.stringify(position);
       //alert(lastPosition);
-    //  this.setState({lastPosition});
+      var newRegion = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421
+      };
+
+      this.onRegionChange(newRegion);
     });
+  }
+
+  onRegionChange = (region) => {
+    this.setState({ region });
+  }
+
+  componentWillUnmount = () => {
+    navigator.geolocation.clearWatch(this.watchID);
   }
 
   _createRouteCoordinates = (response) => {
@@ -85,7 +102,7 @@ class GoogleMapPlayground extends React.Component {
   onButtonPress = () => {
     let destination = encodeURI(this.state.destination);
     let currentLocation = encodeURI(this.state.region.latitude +','+ this.state.region.longitude);
-    let url = 'maps.googleapis.com/maps/api/directions/json?mode=walking&origin='+currentLocation+'&destination='+destination+'&key=AIzaSyDNc-NcD-74uND4WxOX3ofjp-OO8be44Cg';
+    let url = 'maps.googleapis.com/maps/api/directions/json?mode=walking&origin='+currentLocation+'&destination='+destination+'&key='+api_key+'';
     Axios.get('https://' + url)
       .then((response) => {
         let polylineCoords = this._createRouteCoordinates(response);
@@ -99,6 +116,7 @@ class GoogleMapPlayground extends React.Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
+        <ActivityIndicatorLoader />
         <View style={styles.search}>
           <TextInput
              style={{height: 40, borderColor: 'gray', borderWidth: 1}}
@@ -119,13 +137,14 @@ class GoogleMapPlayground extends React.Component {
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.map}
+            mapType="hybrid"
             region={this.state.region}
             >
             {
                 this.state.polylineCoords && <MapView.Polyline
                   coordinates={this.state.polylineCoords}
-                  strokeWidth={2}
-                  strokeColor="red"
+                  strokeWidth={3}
+                  strokeColor="#3D81EF"
                 />
             }
             <MapView.Marker
